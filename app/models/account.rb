@@ -1,6 +1,5 @@
 class Account < ApplicationRecord
-  include Syncable
-  include Monetizable
+  include Syncable, Monetizable, Issuable
 
   validates :name, :balance, :currency, presence: true
 
@@ -15,6 +14,7 @@ class Account < ApplicationRecord
   has_many :balances, dependent: :destroy
   has_many :imports, dependent: :destroy
   has_many :syncs, dependent: :destroy
+  has_many :issues, as: :issuable, dependent: :destroy
 
   monetize :balance
 
@@ -27,6 +27,8 @@ class Account < ApplicationRecord
   scope :ungrouped, -> { where(institution_id: nil) }
 
   delegated_type :accountable, types: Accountable::TYPES, dependent: :destroy
+
+  accepts_nested_attributes_for :accountable
 
   delegate :value, :series, to: :accountable
 
@@ -51,33 +53,36 @@ class Account < ApplicationRecord
     end
 
     def create_with_optional_start_balance!(attributes:, start_date: nil, start_balance: nil)
-      account = self.new(attributes.except(:accountable_type))
-      account.accountable = Accountable.from_type(attributes[:accountable_type])&.new
+      transaction do
+        attributes[:accountable_attributes] ||= {} # Ensure accountable is created
+        account = new(attributes)
 
-      # Always build the initial valuation
-      account.entries.build \
-        date: Date.current,
-        amount: attributes[:balance],
-        currency: account.currency,
-        entryable: Account::Valuation.new
-
-      # Conditionally build the optional start valuation
-      if start_date.present? && start_balance.present?
+        # Always initialize an account with a valuation entry to begin tracking value history
         account.entries.build \
-          date: start_date,
-          amount: start_balance,
+          date: Date.current,
+          amount: account.balance,
           currency: account.currency,
           entryable: Account::Valuation.new
-      end
 
-      account.save!
-      account
+        if start_date.present? && start_balance.present?
+          account.entries.build \
+            date: start_date,
+            amount: start_balance,
+            currency: account.currency,
+            entryable: Account::Valuation.new
+        end
+
+        account.save!
+        account
+      end
     end
   end
 
-  def alert
-    latest_sync = syncs.latest
-    [ latest_sync&.error, *latest_sync&.warnings ].compact.first
+  def owns_ticker?(ticker)
+    security_id = Security.find_by(ticker: ticker)&.id
+    entries.account_trades
+           .joins("JOIN account_trades ON account_entries.entryable_id = account_trades.id")
+           .where(account_trades: { security_id: security_id }).any?
   end
 
   def favorable_direction

@@ -3,7 +3,7 @@ source "https://rubygems.org"
 ruby file: ".ruby-version"
 
 # Rails
-gem "rails", github: "rails/rails", branch: "7-2-stable"
+gem "rails", "~> 7.2.1"
 
 # Drivers
 gem "pg", "~> 1.5"
@@ -42,12 +42,12 @@ gem "inline_svg"
 gem "octokit"
 gem "pagy"
 gem "rails-settings-cached"
-gem "tzinfo-data", platforms: %i[ windows jruby ]
+gem "tzinfo-data", platforms: %i[windows jruby]
 gem "csv"
 gem "redcarpet"
 
 group :development, :test do
-  gem "debug", platforms: %i[ mri windows ]
+  gem "debug", platforms: %i[mri windows]
   gem "brakeman", require: false
   gem "rubocop-rails-omakase", require: false
   gem "i18n-tasks"

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_07_31_191344) do
+ActiveRecord::Schema[7.2].define(version: 2024_09_11_143158) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -69,7 +69,6 @@ ActiveRecord::Schema[7.2].define(version: 2024_07_31_191344) do
     t.date "start_date"
     t.datetime "last_ran_at"
     t.string "error"
-    t.text "warnings", default: [], array: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_account_syncs_on_account_id"
@@ -81,6 +80,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_07_31_191344) do
     t.decimal "price", precision: 19, scale: 4
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "currency"
     t.index ["security_id"], name: "index_account_trades_on_security_id"
   end
 
@@ -150,6 +150,21 @@ ActiveRecord::Schema[7.2].define(version: 2024_07_31_191344) do
     t.uuid "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "addresses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "addressable_type"
+    t.uuid "addressable_id"
+    t.string "line1"
+    t.string "line2"
+    t.string "county"
+    t.string "locality"
+    t.string "region"
+    t.string "country"
+    t.integer "postal_code"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["addressable_type", "addressable_id"], name: "index_addresses_on_addressable"
   end
 
   create_table "categories", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -289,10 +304,11 @@ ActiveRecord::Schema[7.2].define(version: 2024_07_31_191344) do
     t.uuid "account_id", null: false
     t.jsonb "column_mappings"
     t.enum "status", default: "pending", enum_type: "import_status"
-    t.string "raw_csv_str"
+    t.string "raw_file_str"
     t.string "normalized_csv_str"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "col_sep", default: ","
     t.index ["account_id"], name: "index_imports_on_account_id"
   end
 
@@ -302,6 +318,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_07_31_191344) do
     t.uuid "family_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "last_synced_at"
     t.index ["family_id"], name: "index_institutions_on_family_id"
   end
 
@@ -315,6 +332,19 @@ ActiveRecord::Schema[7.2].define(version: 2024_07_31_191344) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["token"], name: "index_invite_codes_on_token", unique: true
+  end
+
+  create_table "issues", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "issuable_type"
+    t.uuid "issuable_id"
+    t.string "type"
+    t.integer "severity"
+    t.datetime "last_observed_at"
+    t.datetime "resolved_at"
+    t.jsonb "data"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["issuable_type", "issuable_id"], name: "index_issues_on_issuable"
   end
 
   create_table "loans", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -344,6 +374,9 @@ ActiveRecord::Schema[7.2].define(version: 2024_07_31_191344) do
   create_table "properties", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "year_built"
+    t.integer "area_value"
+    t.string "area_unit"
   end
 
   create_table "securities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -409,6 +442,11 @@ ActiveRecord::Schema[7.2].define(version: 2024_07_31_191344) do
   create_table "vehicles", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "year"
+    t.integer "mileage_value"
+    t.string "mileage_unit"
+    t.string "make"
+    t.string "model"
   end
 
   add_foreign_key "account_balances", "accounts", on_delete: :cascade

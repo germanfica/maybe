@@ -55,7 +55,7 @@ class User < ApplicationRecord
 
   def can_deactivate
     if admin? && family.users.count > 1
-      errors.add(:base, I18n.t("activerecord.errors.user.cannot_deactivate_admin_with_other_users"))
+      errors.add(:base, :cannot_deactivate_admin_with_other_users)
     end
   end
 
@@ -73,17 +73,17 @@ class User < ApplicationRecord
 
   private
 
-  def last_user_in_family?
-    family.users.count == 1
-  end
-
-  def deactivated_email
-    email.gsub(/@/, "-deactivated-#{SecureRandom.uuid}@")
-  end
-
-  def profile_image_size
-    if profile_image.attached? && profile_image.byte_size > 5.megabytes
-      errors.add(:profile_image, "is too large. Maximum size is 5 MB.")
+    def last_user_in_family?
+      family.users.count == 1
     end
-  end
+
+    def deactivated_email
+      email.gsub(/@/, "-deactivated-#{SecureRandom.uuid}@")
+    end
+
+    def profile_image_size
+      if profile_image.attached? && profile_image.byte_size > 5.megabytes
+        errors.add(:profile_image, :invalid_file_size, max_megabytes: 5)
+      end
+    end
 end

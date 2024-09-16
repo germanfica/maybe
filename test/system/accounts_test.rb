@@ -21,11 +21,25 @@ class AccountsTest < ApplicationSystemTestCase
   end
 
   test "can create property account" do
-    assert_account_created("Property")
+    assert_account_created "Property" do
+      fill_in "Year built (optional)", with: 2005
+      fill_in "Area value (optional)", with: 2250
+      fill_in "Address line 1", with: "123 Main St"
+      fill_in "Address line 2", with: "Apt 4B"
+      fill_in "City", with: "San Francisco"
+      fill_in "State", with: "CA"
+      fill_in "Postal code (optional)", with: "94101"
+      fill_in "Country", with: "US"
+    end
   end
 
   test "can create vehicle account" do
-    assert_account_created("Vehicle")
+    assert_account_created "Vehicle" do
+      fill_in "Make", with: "Toyota"
+      fill_in "Model", with: "Camry"
+      fill_in "Year", with: "2020"
+      fill_in "Mileage", with: "30000"
+    end
   end
 
   test "can create other asset account" do
@@ -44,13 +58,20 @@ class AccountsTest < ApplicationSystemTestCase
     assert_account_created("OtherLiability")
   end
 
+  test "can sync all acounts on accounts page and account summary page" do
+    visit accounts_url
+    assert_button "Sync all"
+    visit summary_accounts_url
+    assert_button "Sync all"
+  end
+
   private
 
     def open_new_account_modal
       click_link "sidebar-new-account"
     end
 
-    def assert_account_created(accountable_type)
+    def assert_account_created(accountable_type, &block)
       click_link humanized_accountable(accountable_type)
       click_link "Enter account balance manually"
 
@@ -59,9 +80,11 @@ class AccountsTest < ApplicationSystemTestCase
       fill_in "Account name", with: account_name
       select "Chase", from: "Financial institution"
       fill_in "account[balance]", with: 100.99
-      check "Add a start balance for this account"
       fill_in "Start date (optional)", with: 10.days.ago.to_date
       fill_in "Start balance (optional)", with: 95
+
+      yield if block_given?
+
       click_button "Add #{humanized_accountable(accountable_type).downcase}"
 
       find("details", text: humanized_accountable(accountable_type)).click
@@ -69,6 +92,17 @@ class AccountsTest < ApplicationSystemTestCase
 
       visit accounts_url
       assert_text account_name
+
+      visit account_url(Account.order(:created_at).last)
+
+      within "header" do
+        find('button[data-menu-target="button"]').click
+        click_on "Edit"
+      end
+
+      fill_in "Account name", with: "Updated account name"
+      click_button "Update #{humanized_accountable(accountable_type).downcase}"
+      assert_selector "h2", text: "Updated account name"
     end
 
     def humanized_accountable(accountable_type)

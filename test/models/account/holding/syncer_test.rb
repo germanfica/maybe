@@ -84,6 +84,8 @@ class Account::Holding::SyncerTest < ActiveSupport::TestCase
                               Security::Price.new(ticker: "AMZN", date: 1.day.ago.to_date, price: 215)
                             ])
 
+    @account.expects(:observe_missing_price).with(ticker: "AMZN", date: Date.current).once
+
     run_sync_for(@account)
 
     assert_holdings(expected)
@@ -103,8 +105,8 @@ class Account::Holding::SyncerTest < ActiveSupport::TestCase
 
         assert actual_holding, "expected #{ticker} holding on date: #{date}"
         assert_equal expected_holding[:qty], actual_holding.qty, "expected #{expected_qty} qty for holding #{ticker} on date: #{date}"
-        assert_equal expected_holding[:amount], actual_holding.amount, "expected #{expected_amount} amount for holding #{ticker} on date: #{date}"
-        assert_equal expected_holding[:price], actual_holding.price, "expected #{expected_price} price for holding #{ticker} on date: #{date}"
+        assert_equal expected_holding[:amount].to_d, actual_holding.amount.to_d, "expected #{expected_amount} amount for holding #{ticker} on date: #{date}"
+        assert_equal expected_holding[:price].to_d, actual_holding.price.to_d, "expected #{expected_price} price for holding #{ticker} on date: #{date}"
       end
     end
 

@@ -8,6 +8,7 @@ class Family < ApplicationRecord
   has_many :imports, through: :accounts
   has_many :categories, dependent: :destroy
   has_many :merchants, dependent: :destroy
+  has_many :issues, through: :accounts
 
   def snapshot(period = Period.all)
     query = accounts.active.joins(:balances)
@@ -45,7 +46,8 @@ class Family < ApplicationRecord
                       .where("account_entries.date <= ?", period.date_range.end)
                       .where("account_entries.marked_as_transfer = ?", false)
                       .where("account_entries.entryable_type = ?", "Account::Transaction")
-                      .group("id")
+                      .group("accounts.id")
+                      .having("SUM(ABS(account_entries.amount)) > 0")
                       .to_a
 
     results.each do |r|

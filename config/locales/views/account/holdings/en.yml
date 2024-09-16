@@ -11,10 +11,14 @@ en:
         name: name
         needs_sync: Your account needs to sync the latest prices to calculate this
           portfolio
-        new_holding: New holding
+        new_holding: New transaction
         no_holdings: No holdings to show.
         return: total return
         weight: weight
+      missing_price_tooltip:
+        description: This investment has missing values and we could not calculate
+          its returns or value.
+        missing_data: Missing data
       show:
         history: History
         overview: Overview

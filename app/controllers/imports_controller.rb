@@ -1,7 +1,7 @@
 require "ostruct"
 
 class ImportsController < ApplicationController
-  before_action :set_import, except: %i[ index new create ]
+  before_action :set_import, except: %i[index new create]
 
   def index
     @imports = Current.family.imports
@@ -18,14 +18,14 @@ class ImportsController < ApplicationController
 
   def update
     account = Current.family.accounts.find(params[:import][:account_id])
+    @import.update! account: account, col_sep: params[:import][:col_sep]
 
-    @import.update! account: account
     redirect_to load_import_path(@import), notice: t(".import_updated")
   end
 
   def create
     account = Current.family.accounts.find(params[:import][:account_id])
-    @import = Import.create!(account: account)
+    @import = Import.create! account: account, col_sep: params[:import][:col_sep]
 
     redirect_to load_import_path(@import), notice: t(".import_created")
   end
@@ -40,7 +40,7 @@ class ImportsController < ApplicationController
 
   def upload_csv
     begin
-      @import.raw_csv_str = import_params[:raw_csv_str].read
+      @import.raw_file_str = import_params[:raw_file_str].read
     rescue NoMethodError
       flash.now[:alert] = "Please select a file to upload"
       render :load, status: :unprocessable_entity and return
@@ -113,6 +113,6 @@ class ImportsController < ApplicationController
     end
 
     def import_params(permitted_mappings = nil)
-      params.require(:import).permit(:raw_csv_str, column_mappings: permitted_mappings, csv_update: [ :row_idx, :col_idx, :value ])
+      params.require(:import).permit(:raw_file_str, column_mappings: permitted_mappings, csv_update: [ :row_idx, :col_idx, :value ])
     end
 end

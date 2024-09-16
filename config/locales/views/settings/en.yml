@@ -12,6 +12,13 @@ en:
         email_sender: Email Sender
         email_sender_placeholder: user@mydomain.com
         general_settings_title: General Settings
+        invite_settings:
+          generate_tokens: Generate new code
+          generated_tokens: Generated codes
+          invite_code_description: Every new user that joins your instance if Maybe
+            can only do so via an invite code
+          require_invite_for_signup: Require invite code for new sign ups
+          title: Invite Codes
         page_title: Self-Hosting
         provider_settings:
           title: Provider Settings
@@ -51,23 +58,18 @@ en:
         success: Settings updated successfully.
     nav:
       accounts_label: Accounts
-      billing_label: Billing
       categories_label: Categories
       feedback_label: Feedback
       general_section_title: General
       imports_label: Imports
-      invite_label: Invite friends
       merchants_label: Merchants
-      notifications_label: Notifications
       other_section_title: More
       preferences_label: Preferences
       profile_label: Account
-      rules_label: Rules
-      security_label: Security
-      self_hosting_label: Self-Hosting
+      self_hosting_label: Self hosting
       tags_label: Tags
       transactions_section_title: Transactions
-      whats_new_label: What's New
+      whats_new_label: What's new
     nav_link_large:
       next: Next
       previous: Back
@@ -108,5 +110,4 @@ en:
         profile_title: Profile
         save: Save
       update:
-        file_size_error: File size must be less than 5MB
         success: Profile updated successfully.

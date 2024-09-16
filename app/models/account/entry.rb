@@ -204,7 +204,13 @@ class Account::Entry < ApplicationRecord
         current_qty = account.holding_qty(account_trade.security)
 
         if current_qty < account_trade.qty.abs
-          errors.add(:base, "cannot sell #{account_trade.qty.abs} shares of #{account_trade.security.ticker} because you only own #{current_qty} shares")
+          errors.add(
+            :base,
+            :invalid_sell_quantity,
+            sell_qty: account_trade.qty.abs,
+            ticker: account_trade.security.ticker,
+            current_qty: current_qty
+          )
         end
       end
     end

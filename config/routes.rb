@@ -3,7 +3,6 @@ Rails.application.routes.draw do
 
   get "changelog" => "pages#changelog", as: :changelog
   get "feedback" => "pages#feedback", as: :feedback
-  get "invites" => "pages#invites", as: :invites
 
   resource :registration
   resource :session
@@ -17,12 +16,9 @@ Rails.application.routes.draw do
   namespace :settings do
     resource :profile, only: %i[show update destroy]
     resource :preferences, only: %i[show update]
-    resource :notifications, only: %i[show update]
-    resource :billing, only: %i[show update]
     resource :hosting, only: %i[show update] do
       post :send_test_email, on: :collection
     end
-    resource :security, only: %i[show update]
   end
 
   resources :imports, except: :show do
@@ -42,8 +38,8 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :tags, except: %i[ show destroy ] do
-    resources :deletions, only: %i[ new create ], module: :tag
+  resources :tags, except: %i[show destroy] do
+    resources :deletions, only: %i[new create], module: :tag
   end
 
   namespace :category do
@@ -51,17 +47,13 @@ Rails.application.routes.draw do
   end
 
   resources :categories do
-    resources :deletions, only: %i[ new create ], module: :category
+    resources :deletions, only: %i[new create], module: :category
   end
 
-  resources :merchants, only: %i[ index new create edit update destroy ]
+  resources :merchants, only: %i[index new create edit update destroy]
 
   namespace :account do
-    resources :transfers, only: %i[ new create destroy ]
-
-    namespace :transaction do
-      resources :rules, only: %i[ index ]
-    end
+    resources :transfers, only: %i[new create destroy]
   end
 
   resources :accounts do
@@ -78,20 +70,21 @@ Rails.application.routes.draw do
     scope module: :account do
       resource :logo, only: :show
 
-      resources :holdings, only: %i[ index new show ]
+      resources :holdings, only: %i[index new show]
       resources :cashes, only: :index
 
-      resources :entries, except: :index do
-        collection do
-          get "transactions", as: :transaction
-          get "valuations", as: :valuation
-          get "trades", as: :trade
-        end
-      end
+      resources :transactions, only: %i[index update]
+      resources :valuations, only: %i[index new create]
+      resources :trades, only: %i[index new create]
+
+      resources :entries, only: %i[edit update show destroy]
     end
   end
 
-  resources :transactions, only: %i[ index new create ] do
+  resources :properties, only: %i[create update]
+  resources :vehicles, only: %i[create update]
+
+  resources :transactions, only: %i[index new create] do
     collection do
       post "bulk_delete"
       get "bulk_edit"
@@ -102,7 +95,16 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :institutions, except: %i[ index show ]
+  resources :institutions, except: %i[index show] do
+    post :sync, on: :member
+  end
+  resources :invite_codes, only: %i[index create]
+
+  resources :issues, only: :show
+
+  namespace :issue do
+    resources :exchange_rate_provider_missings, only: :update
+  end
 
   # For managing self-hosted upgrades and release notifications
   resources :upgrades, only: [] do

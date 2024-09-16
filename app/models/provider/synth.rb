@@ -5,6 +5,11 @@ class Provider::Synth
     @api_key = api_key
   end
 
+  def healthy?
+    response = client.get("#{base_url}/user")
+    JSON.parse(response.body).dig("id").present?
+  end
+
   def fetch_security_prices(ticker:, start_date:, end_date:)
     prices = paginate(
       "#{base_url}/tickers/#{ticker}/open-close",
@@ -57,12 +62,40 @@ class Provider::Synth
     end
   end
 
+  def fetch_exchange_rates(from:, to:, start_date:, end_date:)
+    exchange_rates = paginate(
+      "#{base_url}/rates/historical-range",
+      from: from,
+      to: to,
+      date_start: start_date.to_s,
+      date_end: end_date.to_s
+    ) do |body|
+      body.dig("data").map do |exchange_rate|
+        {
+          date: exchange_rate.dig("date"),
+          rate: exchange_rate.dig("rates", to)
+        }
+      end
+    end
+
+    ExchangeRatesResponse.new \
+      rates: exchange_rates,
+      success?: true,
+      raw_response: exchange_rates.to_json
+  rescue StandardError => error
+    ExchangeRatesResponse.new \
+      success?: false,
+      error: error,
+      raw_response: error
+  end
+
   private
 
     attr_reader :api_key
 
     ExchangeRateResponse = Struct.new :rate, :success?, :error, :raw_response, keyword_init: true
     SecurityPriceResponse = Struct.new :prices, :success?, :error, :raw_response, keyword_init: true
+    ExchangeRatesResponse = Struct.new :rates, :success?, :error, :raw_response, keyword_init: true
 
     def base_url
       "https://api.synthfinance.com"

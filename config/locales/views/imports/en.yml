@@ -40,6 +40,7 @@ en:
         "inflow" (income)
       requirement3: Can have 0 or more tags separated by |
     csv_upload:
+      allowed_filetypes: Only CSV files are allowed.
       confirm_accept: Yep, start over!
       confirm_body: This will reset your import. Any changes you have made to the
         CSV will be erased.
@@ -58,8 +59,13 @@ en:
       new: New Import
     form:
       account: Account
+      col_sep: CSV column separator
+      col_sep_char:
+        '44': Comma (,)
+        '59': Semicolon (;)
       next: Next
       select_account: Select account
+      select_col_sep: Select CSV column separator
     import:
       complete: Complete
       completed_on: Completed on %{datetime}

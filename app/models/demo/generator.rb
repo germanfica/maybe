@@ -6,6 +6,7 @@ class Demo::Generator
   end
 
   def reset_and_clear_data!
+    reset_settings!
     clear_data!
     create_user!
 
@@ -14,6 +15,7 @@ class Demo::Generator
 
   def reset_data!
     Family.transaction do
+      reset_settings!
       clear_data!
       create_user!
 
@@ -52,10 +54,15 @@ class Demo::Generator
     end
 
     def clear_data!
+      InviteCode.destroy_all
       User.find_by_email("user@maybe.local")&.destroy
       ExchangeRate.destroy_all
       Security.destroy_all
       Security::Price.destroy_all
+    end
+
+    def reset_settings!
+      Setting.destroy_all
     end
 
     def create_user!
@@ -207,7 +214,7 @@ class Demo::Generator
       unknown = Security.find_by(ticker: "UNKNOWN")
 
       # Buy 20 shares of the unknown stock to simulate a stock where we can't fetch security prices
-      account.entries.create! date: 10.days.ago.to_date, amount: 100, currency: "USD", name: "Buy unknown stock", entryable: Account::Trade.new(qty: 20, price: 5, security: unknown)
+      account.entries.create! date: 10.days.ago.to_date, amount: 100, currency: "USD", name: "Buy unknown stock", entryable: Account::Trade.new(qty: 20, price: 5, security: unknown, currency: "USD")
 
       trades = [
         { security: aapl, qty: 20 }, { security: msft, qty: 10 }, { security: aapl, qty: -5 },
@@ -228,7 +235,7 @@ class Demo::Generator
           amount: qty * price,
           currency: "USD",
           name: name_prefix + "#{qty} shares of #{security.ticker}",
-          entryable: Account::Trade.new(qty: qty, price: price, security: security)
+          entryable: Account::Trade.new(qty: qty, price: price, currency: "USD", security: security)
       end
     end
 
